@@ -65,7 +65,29 @@ impl<K: Ord + Eq + Debug, V> StateTree<K, V> {
         }
     }
 
-    pub fn search(&self, index: K) -> &V {}
+    /// Searches for an element in the tree, returning an Option because searching might fail
+    ///
+    /// Searching returns a reference to the value V indexed by the biggest K such as K <= index
+    pub fn search(&self, index: K) -> Option<&V> {
+        match index.cmp(&self.node.indexer) {
+            Ordering::Equal => Some(&self.node.value),
+            Ordering::Less => match self.child_low {
+                Some(ref child) => child.search(index),
+                _ => None,
+            },
+            Ordering::Greater => match self.child_high {
+                Some(ref child) => {
+                    let searched = child.search(index);
+                    if searched.is_none() {
+                        Some(&self.node.value)
+                    } else {
+                        searched
+                    }
+                }
+                None => Some(&self.node.value),
+            },
+        }
+    }
 }
 
 /// Inner type, should never be constructed manually
@@ -89,26 +111,73 @@ pub mod tests {
     use super::*;
 
     #[test]
-    /// Creating a state tree should not panic
+    /// Creating a StateTree should not panic
     pub fn state_tree_create() {
         let _: StateTree<usize, char> = StateTree::new(0, 'a');
     }
 
     #[test]
-    /// Pushing on a state_tree with different keys should never panic
+    /// Pushing on a StateTree with different keys should never panic
     pub fn state_tree_push() {
         let mut tree: StateTree<usize, char> = StateTree::new(3, 'b');
         tree.push(5, 'd');
         tree.push(4, 'c');
         tree.push(2, 'a');
+
+        assert!(tree.child_low.is_some());
+        assert!(tree.child_high.is_some());
+
+        let tree_2 = tree.child_high.unwrap();
+        assert!(tree_2.child_low.is_some());
+        assert!(tree_2.child_high.is_none());
     }
 
     #[test]
     #[should_panic]
+    /// Pushing on a StateTree with a key that's already been placed should
+    /// panic.
+    /// TODO: API? Is it better to return a Result or to panic ?  
     pub fn state_tree_push_panic() {
         let mut tree: StateTree<usize, char> = StateTree::new(2, 'c');
         tree.push(0, 'a');
         tree.push(1, 'b');
         tree.push(2, 'c');
+    }
+
+    #[test]
+    /// Searching on a StateTree should return a correct
+    /// result and never panic
+    pub fn state_tree_search() {
+        let mut tree: StateTree<usize, char> = StateTree::new(20, 'c');
+        tree.push(5, 'a');
+        tree.push(10, 'b');
+        tree.push(25, 'd');
+
+        // Searching for undefined K (there is no K such as K < 0)
+        (0..=4).for_each(|i| assert_eq!(tree.search(i), None));
+
+        // Searching for defined K
+        assert_eq!(tree.search(5), Some(&'a'));
+        assert_eq!(tree.search(10), Some(&'b'));
+        assert_eq!(tree.search(20), Some(&'c'));
+        assert_eq!(tree.search(25), Some(&'d'));
+
+        // Searching for not directly defined K
+        assert_eq!(tree.search(6), Some(&'a'));
+        assert_eq!(tree.search(11), Some(&'b'));
+        assert_eq!(tree.search(21), Some(&'c'));
+        assert_eq!(tree.search(26), Some(&'d'));
+
+        // Overall checking
+        (0..30).for_each(|i| {
+            let result = match i {
+                x if x < 5 => None,
+                x if x < 10 => Some(&'a'),
+                x if x < 20 => Some(&'b'),
+                x if x < 25 => Some(&'c'),
+                _ => Some(&'d'),
+            };
+            assert_eq!(tree.search(i), result);
+        })
     }
 }
