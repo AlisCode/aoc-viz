@@ -16,11 +16,11 @@ pub trait Visualize<C: Hash + Eq, V> {
 
     /// Provides the default value to be shown if the implementor fails
     /// to provide a value for a specific coord
-    fn default_viz(&self) -> V;
+    fn default_val(&self) -> V;
 }
 
 impl Visualize<(i32, i32), char> for String {
-    fn default_viz(&self) -> char {
+    fn default_val(&self) -> char {
         ' '
     }
 
@@ -37,13 +37,59 @@ impl Visualize<(i32, i32), char> for String {
 
     fn delta(&self, previous: &Self) -> Vec<(i32, i32)> {
         let mut x: i32 = 0;
-        let mut y: i32 = 0;
+        let mut y: i32 = -1;
         self.lines()
             .zip_longest(previous.lines())
-            .flat_map(|(either_or_both)| match either_or_both {
-                EitherOrBoth::Both(curr, prev) => vec![],
-                EitherOrBoth::Left(val) | EitherOrBoth::Right(val) => vec![],
+            .map(|either_or_both: EitherOrBoth<&str, &str>| {
+                y += 1;
+                x = 0;
+                match either_or_both {
+                    EitherOrBoth::Both(curr, prev) => curr.chars().zip_longest(prev.chars()).filter_map(|eob| {
+                        x += 1;
+                        match eob {
+                            EitherOrBoth::Both(_,_) => None,
+                            _ => Some((x,y)),
+                        }
+                    }).collect(),
+                    EitherOrBoth::Left(val) | EitherOrBoth::Right(val) => val.chars().map(|_| {
+                        x += 1;
+                        (x, y)
+                    }).collect()
+                }
             })
+            .flat_map(|i: Vec<(i32,i32)>| i.into_iter())
             .collect()
+    }
+}
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
+    #[test]
+    fn visualize_str_default_val() {
+        let string: String = String::new();
+        assert_eq!(string.default_val(), ' ');
+    }
+
+
+    #[test]
+    fn visualize_str_delta() {
+        // Two identical strings should not have a delta
+        let string: String = "abcdefg".into();
+        let other_string: String = "abcdefg".into();
+        assert_eq!(string.delta(&other_string), vec![]);
+
+        // Same test, with multiple lines 
+        let string: String = "abc\ndef\ng".into();
+        let other_string: String = "abc\ndef\ng".into();
+        assert_eq!(string.delta(&other_string), vec![]);
+
+        // Two different strings should have a delta 
+        let string: String = "abcdefgh".into();
+        let other_string: String = "abcdefg".into(); 
+        let delta: Vec<(i32,i32)> = string.delta(&other_string);
+        assert_eq!(delta.len(), 1);
+        assert_eq!(delta[0], (8,0));
     }
 }
