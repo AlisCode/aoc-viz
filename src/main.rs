@@ -1,11 +1,6 @@
-use cursive::views::TextView;
-use cursive::Cursive;
+use aoc_viz::aoc_viz_app::AocVizApp;
 
 fn main() {
-    let mut crsv = Cursive::default();
-
-    crsv.add_layer(TextView::new("Hello world!"));
-    crsv.add_global_callback('q', |c| c.quit());
-
-    crsv.run();
+    let mut app: AocVizApp = AocVizApp::new();
+    app.launch();
 }
