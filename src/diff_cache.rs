@@ -56,7 +56,7 @@ impl<C: Hash + Eq, K: Ord + Eq + Copy + Debug, V> DiffCache<C, K, V> {
 }
 
 #[cfg(test)]
-pub mod tests {
+mod tests {
     use super::*;
 
     #[test]
