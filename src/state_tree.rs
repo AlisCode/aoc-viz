@@ -42,11 +42,11 @@ impl<K: Ord + Eq + Debug, V> StateTree<K, V> {
             indexer: index,
             value,
         };
-        self.push_inner(node);
+        self.push_inner_non_recursive(node);
     }
 
     /// Internal API to the push function, avoids leaking StateTreeNode
-    fn push_inner(&mut self, node: StateTreeNode<K, V>) {
+    fn _push_inner(&mut self, node: StateTreeNode<K, V>) {
         // Compared to this node, the new node is either greater or lower.
         // This data structure does not support storing two different values
         // at the same index, because it does not make sense
@@ -61,8 +61,33 @@ impl<K: Ord + Eq + Debug, V> StateTree<K, V> {
         // eventually storing node at some point
         match next_node {
             None => *next_node = Some(Box::new(node.as_root())),
-            Some(ref mut n) => n.push_inner(node),
+            Some(ref mut n) => n._push_inner(node),
         }
+    }
+
+    /// Internal API to the push function. Avoids leaking StateTreeNode type.
+    /// Non-recursive version to avoid possible stack overflow
+    fn push_inner_non_recursive(&mut self, node: StateTreeNode<K, V>) {
+        let mut next_node = match node.indexer.cmp(&self.node.indexer) {
+            Ordering::Greater => &mut self.child_high,
+            Ordering::Less => &mut self.child_low,
+            _ => panic!("Already got a state at index {:?}", node.indexer),
+        };
+
+        let mut do_continue = true;
+        while do_continue {
+            if let Some(next) = next_node {
+                let cmp = next.node.indexer.cmp(&node.indexer);
+                next_node = match cmp {
+                    Ordering::Less => &mut next.child_high,
+                    Ordering::Greater => &mut next.child_low,
+                    _ => panic!("Already got a state at index {:?}", node.indexer),
+                }
+            } else {
+                do_continue = false;
+            }
+        }
+        *next_node = Some(Box::new(node.as_root()))
     }
 
     /// Searches for an element in the tree, returning an Option because searching might fail
