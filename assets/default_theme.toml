@@ -1,0 +1,21 @@
+# Default  config for the toy file explorer. 
+# cf: https://docs.rs/cursive/0.9.1/cursive/theme/index.html
+
+shadow = false  # Don't draw shadows around stacked views
+borders = "none"  # Alternatives are "none" and "outset"
+
+# Color palette
+[colors]
+    background = "#000000"
+    shadow     = ["#000000", "black"]
+    view       = "black"
+
+    primary   = ["#EEEEEE"]
+    secondary = "#EEEEEE"
+    tertiary  = "#444444"
+
+    title_primary   = "#ff5555"
+    title_secondary = "#ffff55"
+
+    highlight          = "#EEEEEE"
+    highlight_inactive = "#5555FF"
