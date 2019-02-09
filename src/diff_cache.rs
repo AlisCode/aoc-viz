@@ -23,7 +23,7 @@ impl<C: Hash + Eq, K: Ord + Eq + Copy + Debug, V> DiffCache<C, K, V> {
 
     /// Adds a V value information for a given C coordinate and a given K index
     /// Panics if we failed to insert a StateTree in the inner data
-    /// TODO: Should not panic, maybe return a boolean ? 
+    /// TODO: Should not panic, maybe return a boolean ?
     pub fn push(&mut self, coords: C, index: K, value: V) {
         let mut entry = self.data.get_mut(&coords);
         match entry {
