@@ -35,6 +35,29 @@ impl FrameView {
         self.origin.1 += y;
     }
 
+    /// Specifies the new time index to move to
+    pub fn move_to_time_index(&mut self, new_index: usize) {
+        self.index = new_index;
+    }
+
+    /// Forwards one time-unit
+    /// TODO: remove. Should use move_to_time_index.
+    pub fn time_forward(&mut self) {
+        self.index = match self.index.checked_add(1) {
+            Some(new) => new,
+            _ => self.index,
+        }
+    }
+
+    /// Backwards one time-unit
+    /// TODO: remove. Should use move_to_time_index.
+    pub fn time_backward(&mut self) {
+        self.index = match self.index.checked_sub(1) {
+            Some(new) => new,
+            _ => self.index,
+        }
+    }
+
     /// Generates the logical coordinates of the viewport
     pub fn get_screen_coords(&self) -> impl Iterator<Item = (i32, i32)> {
         let min_x = self.origin.0;
@@ -73,15 +96,23 @@ impl View for FrameView {
                 return EventResult::Consumed(None);
             }
             Event::Key(k) if k == Key::Down => {
-                self.move_center(0, -1);
+                self.move_center(0, 1);
                 return EventResult::Consumed(None);
             }
             Event::Key(k) if k == Key::Up => {
-                self.move_center(0, 1);
+                self.move_center(0, -1);
                 return EventResult::Consumed(None);
             }
             Event::Key(k) if k == Key::Right => {
                 self.move_center(1, 0);
+                return EventResult::Consumed(None);
+            }
+            Event::Key(k) if k == Key::F4 => {
+                self.time_forward();
+                return EventResult::Consumed(None);
+            }
+            Event::Key(k) if k == Key::F3 => {
+                self.time_backward();
                 return EventResult::Consumed(None);
             }
             _ => EventResult::Ignored,
