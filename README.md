@@ -5,6 +5,13 @@ End goal : Users can animate their data by implementing a trait and providing a 
 # Roadmap 
 
 [x] Implement a DiffTree 
+
 [x] Visualize trait 
-[ ] Cursive example application
+
+[x] Cursive example application
+
+[ ] Cursive: Add time-handling bar
+
+[ ] proc_macro handling to make things generic
+
 [ ] Multiple examples 
