@@ -1,6 +1,9 @@
 use crate::diff_cache::DiffCache;
 use crate::view::frame::FrameView;
+use crate::view::time::TimeView;
 use crate::visualize::{populate_cache, Visualize};
+use cursive::direction::Orientation;
+use cursive::views::LinearLayout;
 use cursive::Cursive;
 use std::marker::PhantomData;
 use std::sync::{Arc, Mutex};
@@ -29,7 +32,7 @@ where
 
         AocVizApp {
             cursive,
-            cache: Arc::new(Mutex::new(DiffCache::new('.'))),
+            cache: Arc::new(Mutex::new(DiffCache::new(' '))),
             fn_user,
             _phantom_t: PhantomData,
             _phantom_v: PhantomData,
@@ -39,7 +42,11 @@ where
     /// Launches the viz application
     pub fn launch(&mut self) {
         // Populates the view
-        self.cursive.add_layer(FrameView::new(self.cache.clone()));
+        let mut layout = LinearLayout::new(Orientation::Vertical);
+        layout.add_child(FrameView::new(self.cache.clone()));
+        layout.add_child(TimeView::new());
+
+        self.cursive.add_layer(layout);
 
         // Sets the various option callbacks
         self.cursive.add_global_callback('q', |c| c.quit());

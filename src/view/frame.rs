@@ -127,7 +127,7 @@ impl View for FrameView {
 
     /// Minimum size that we require, given the constraints. Let's just set fullscreen.
     fn required_size(&mut self, constraint: Vec2) -> Vec2 {
-        constraint
+        (constraint.x, constraint.y - 4).into()
     }
 
     /// When we're given focus, just say yes.
