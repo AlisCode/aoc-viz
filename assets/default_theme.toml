@@ -2,12 +2,12 @@
 # cf: https://docs.rs/cursive/0.9.1/cursive/theme/index.html
 
 shadow = false  # Don't draw shadows around stacked views
-borders = "none"  # Alternatives are "none" and "outset"
+borders = "simple"  # Alternatives are "none" and "outset"
 
 # Color palette
 [colors]
     background = "#000000"
-    shadow     = ["#000000", "black"]
+    #shadow     = ["#000000", "black"]
     view       = "black"
 
     primary   = ["#EEEEEE"]
@@ -18,4 +18,4 @@ borders = "none"  # Alternatives are "none" and "outset"
     title_secondary = "#ffff55"
 
     highlight          = "#EEEEEE"
-    highlight_inactive = "#5555FF"
+    #highlight_inactive = "#5555FF"
