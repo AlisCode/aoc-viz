@@ -43,8 +43,8 @@ where
     pub fn launch(&mut self) {
         // Populates the view
         let mut layout = LinearLayout::new(Orientation::Vertical);
-        layout.add_child(FrameView::new(self.cache.clone()));
         layout.add_child(TimeView::new());
+        layout.add_child(FrameView::new(self.cache.clone()));
 
         self.cursive.add_layer(layout);
 

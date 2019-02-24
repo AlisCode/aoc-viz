@@ -1,3 +1,5 @@
+use cursive::direction::Direction;
+use cursive::event::{Event, EventResult};
 use cursive::theme::{Color, ColorStyle, ColorType};
 use cursive::vec::Vec2;
 use cursive::view::View;
@@ -21,8 +23,8 @@ impl TimeView {
     pub fn new() -> Self {
         TimeView {
             min: 0,
-            max: 1,
-            current: 0,
+            max: 10,
+            current: 9,
             size: (0, 0).into(),
         }
     }
@@ -33,6 +35,7 @@ fn map(x: usize, in_min: usize, in_max: usize, out_min: usize, out_max: usize) -
 }
 
 impl View for TimeView {
+    /// Draws the TimeView using a Cursive `Printer`
     fn draw(&self, printer: &Printer) {
         printer.print_box((0, 0), self.size, true);
 
@@ -52,26 +55,57 @@ impl View for TimeView {
 
         printer.print((1, 1), &format!("{}", self.min));
         printer.print((pos_x_max, 1), &str_max);
-        printer.print((target_x_current, 1), &str_current);
+        printer.print((target_x_current + 2, 1), &str_current);
+        let string_up_to_current = map(self.current, self.min, self.max, 1, self.size.x);
         printer.with_color(
             ColorStyle::new(
                 ColorType::Color(Color::Rgb(255, 255, 255)),
                 ColorType::Color(Color::Rgb(255, 255, 255)),
             ),
             |p| {
-                p.print((1, 2), "||||||||");
+                p.print(
+                    (1, 2),
+                    &(0..=string_up_to_current).map(|_| '|').collect::<String>(),
+                );
             },
         );
+        if string_up_to_current < self.size.x {
+            printer.print(
+                (string_up_to_current, 2),
+                &(string_up_to_current..=self.size.x)
+                    .map(|_| '|')
+                    .collect::<String>(),
+            );
+        }
         printer.with_color(
             ColorStyle::new(
                 ColorType::Color(Color::Rgb(0, 0, 0)),
                 ColorType::Color(Color::Rgb(0, 0, 0)),
             ),
             |p| {
-                p.print((9, 2), "|");
+                p.print((string_up_to_current, 2), "|");
             },
         );
-        printer.print((10, 2), "||||||||||");
+    }
+
+    /// Handles a key press on the TimeView
+    fn on_event(&mut self, event: Event) -> EventResult {
+        match event {
+            Event::Char(k) if k == 'n' => {
+                self.current += 1;
+                return EventResult::Consumed(None);
+            }
+            Event::Char(k) if k == 'b' => {
+                self.current -= 1;
+                return EventResult::Consumed(None);
+            }
+            _ => EventResult::Ignored,
+        }
+    }
+
+    /// Takes the focus for the TimeView
+    fn take_focus(&mut self, _: Direction) -> bool {
+        true
     }
 
     /// Called when the size of the widget has been decided
@@ -79,6 +113,7 @@ impl View for TimeView {
         self.size = size;
     }
 
+    /// Called when Cursive wants to add a constraint to the TimeView's layout
     fn required_size(&mut self, max: Vec2) -> Vec2 {
         (max.x, 4usize).into()
     }
