@@ -1,34 +1,32 @@
+use crate::time_index::TimeIndex;
 use cursive::direction::Direction;
 use cursive::theme::{Color, ColorStyle, ColorType};
 use cursive::vec::Vec2;
 use cursive::view::View;
 use cursive::Printer;
+use std::sync::{Arc, Mutex};
 
 /// Struct that shows the handling of the time
 /// in the current application
 /// TODO: FIXDOC
 pub struct TimeView {
-    /// Minimum time index available
-    min: usize,
-    /// Maximum time index available
-    max: usize,
-    /// Current index
-    current: usize,
+    /// Keeps track of the time index
+    time_index: Arc<Mutex<TimeIndex>>,
     /// Size of the Time widget
     size: Vec2,
 }
 
 impl TimeView {
-    pub fn new() -> Self {
+    pub fn new(time_index: Arc<Mutex<TimeIndex>>) -> Self {
         TimeView {
-            min: 0,
-            max: 10,
-            current: 9,
+            time_index,
             size: (0, 0).into(),
         }
     }
 }
 
+/// Utility function, linearly maps the number x contained in the min range to
+/// a y number contained in the max range
 fn map(x: usize, in_min: usize, in_max: usize, out_min: usize, out_max: usize) -> usize {
     (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 }
@@ -36,26 +34,31 @@ fn map(x: usize, in_min: usize, in_max: usize, out_min: usize, out_max: usize) -
 impl View for TimeView {
     /// Draws the TimeView using a Cursive `Printer`
     fn draw(&self, printer: &Printer) {
+        let time_index = self
+            .time_index
+            .lock()
+            .expect("Failed to get lock on TimeIndex");
+
         printer.print_box((0, 0), self.size, true);
 
-        let str_min = format!("{}", self.min);
+        let str_min = format!("{}", time_index.min);
 
-        let str_max = format!("{}", self.max);
+        let str_max = format!("{}", time_index.max);
         let pos_x_max = self.size.x - str_max.len() - 1;
 
         // Shows the minimum value
-        printer.print((1, 1), &format!("{}", self.min));
+        printer.print((1, 1), &format!("{}", time_index.min));
 
         // Shows the maximum value
         printer.print((pos_x_max, 1), &str_max);
 
         // Shows the current value if it is different from the max
-        if self.current != self.max && self.current != self.min {
-            let str_current = format!("{}", self.current);
+        if time_index.current != time_index.max && time_index.current != time_index.min {
+            let str_current = format!("{}", time_index.current);
             let target_x_current = map(
-                self.current,
-                self.min,
-                self.max,
+                time_index.current,
+                time_index.min,
+                time_index.max,
                 str_min.len() + 2,
                 pos_x_max - str_current.len() - 2,
             );
@@ -63,7 +66,13 @@ impl View for TimeView {
         }
 
         // Computes the loading bar index
-        let string_up_to_current = map(self.current, self.min, self.max, 1, self.size.x - 2);
+        let string_up_to_current = map(
+            time_index.current,
+            time_index.min,
+            time_index.max,
+            1,
+            self.size.x - 2,
+        );
 
         // Shows the "loading bar" (how far we are on the time index)
         printer.with_color(
@@ -103,7 +112,7 @@ impl View for TimeView {
 
     /// Takes the focus for the TimeView
     fn take_focus(&mut self, _: Direction) -> bool {
-        true
+        false
     }
 
     /// Called when the size of the widget has been decided

@@ -1,4 +1,5 @@
 use crate::diff_cache::DiffCache;
+use crate::time_index::TimeIndex;
 use crate::view::frame::FrameView;
 use crate::view::time::TimeView;
 use crate::visualize::{populate_cache, Visualize};
@@ -11,6 +12,7 @@ use std::sync::{Arc, Mutex};
 pub struct AocVizApp<F, T, V> {
     cursive: Cursive,
     cache: Arc<Mutex<DiffCache<(i32, i32), usize, char>>>,
+    time_index: Arc<Mutex<TimeIndex>>,
     fn_user: F,
     _phantom_t: PhantomData<T>,
     _phantom_v: PhantomData<V>,
@@ -33,6 +35,7 @@ where
         AocVizApp {
             cursive,
             cache: Arc::new(Mutex::new(DiffCache::new(' '))),
+            time_index: Arc::new(Mutex::new(TimeIndex::new(0, 0, 0))),
             fn_user,
             _phantom_t: PhantomData,
             _phantom_v: PhantomData,
@@ -43,8 +46,8 @@ where
     pub fn launch(&mut self) {
         // Populates the view
         let mut layout = LinearLayout::new(Orientation::Vertical);
-        layout.add_child(FrameView::new(self.cache.clone()));
-        layout.add_child(TimeView::new());
+        layout.add_child(FrameView::new(self.cache.clone(), self.time_index.clone()));
+        layout.add_child(TimeView::new(self.time_index.clone()));
 
         self.cursive.add_layer(layout);
 
@@ -52,7 +55,12 @@ where
         self.cursive.add_global_callback('q', |c| c.quit());
 
         // Populates the cache by running the user's fn with a correct input
-        CachePopulator::new(self.cache.clone(), Box::new(self.fn_user.clone())).launch();
+        CachePopulator::new(
+            self.cache.clone(),
+            Box::new(self.fn_user.clone()),
+            self.time_index.clone(),
+        )
+        .launch();
 
         // Runs the cursive app
         self.cursive.run();
@@ -62,6 +70,7 @@ where
 struct CachePopulator<F> {
     cache: Arc<Mutex<DiffCache<(i32, i32), usize, char>>>,
     fn_user: Box<F>,
+    time_index: Arc<Mutex<TimeIndex>>,
 }
 
 impl<F, T, V> CachePopulator<F>
@@ -70,14 +79,22 @@ where
     V: Visualize<(i32, i32), char> + std::fmt::Debug,
     F: Fn(String) -> T + Send + Sync + 'static,
 {
-    pub fn new(cache: Arc<Mutex<DiffCache<(i32, i32), usize, char>>>, fn_user: Box<F>) -> Self {
-        CachePopulator { cache, fn_user }
+    pub fn new(
+        cache: Arc<Mutex<DiffCache<(i32, i32), usize, char>>>,
+        fn_user: Box<F>,
+        time_index: Arc<Mutex<TimeIndex>>,
+    ) -> Self {
+        CachePopulator {
+            cache,
+            fn_user,
+            time_index,
+        }
     }
 
     pub fn launch(self) {
         std::thread::spawn(|| {
             let input: String = "abc".into();
-            populate_cache(self.cache, (self.fn_user)(input));
+            populate_cache(self.cache, self.time_index, (self.fn_user)(input));
         });
     }
 }

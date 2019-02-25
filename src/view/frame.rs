@@ -1,4 +1,5 @@
 use crate::diff_cache::DiffCache;
+use crate::time_index::TimeIndex;
 use cursive::direction::Direction;
 use cursive::event::{Event, EventResult, Key};
 use cursive::view::View;
@@ -12,19 +13,22 @@ pub struct FrameView {
     origin: (i32, i32),
     /// Size of the viewport
     size: Vec2,
-    /// Current time index to draw
-    index: usize,
+    /// The TimeIndex to use
+    time_index: Arc<Mutex<TimeIndex>>,
     /// Data source (an atomic ref to the DiffCache that this view is displaying)
     target: Arc<Mutex<DiffCache<(i32, i32), usize, char>>>,
 }
 
 impl FrameView {
     /// Creates a new instance of the FrameView
-    pub fn new(target: Arc<Mutex<DiffCache<(i32, i32), usize, char>>>) -> Self {
+    pub fn new(
+        target: Arc<Mutex<DiffCache<(i32, i32), usize, char>>>,
+        time_index: Arc<Mutex<TimeIndex>>,
+    ) -> Self {
         FrameView {
             origin: (0, 0),
             size: Vec2::new(0, 0),
-            index: 0,
+            time_index,
             target,
         }
     }
@@ -37,25 +41,19 @@ impl FrameView {
 
     /// Specifies the new time index to move to
     pub fn move_to_time_index(&mut self, new_index: usize) {
-        self.index = new_index;
+        self.time_index.lock().unwrap().set_current(new_index);
     }
 
     /// Forwards one time-unit
     /// TODO: remove. Should use move_to_time_index.
     pub fn time_forward(&mut self) {
-        self.index = match self.index.checked_add(1) {
-            Some(new) => new,
-            _ => self.index,
-        }
+        self.time_index.lock().unwrap().forward();
     }
 
     /// Backwards one time-unit
     /// TODO: remove. Should use move_to_time_index.
     pub fn time_backward(&mut self) {
-        self.index = match self.index.checked_sub(1) {
-            Some(new) => new,
-            _ => self.index,
-        }
+        self.time_index.lock().unwrap().backward();
     }
 
     /// Generates the logical coordinates of the viewport
@@ -77,12 +75,14 @@ impl View for FrameView {
         let local_coords =
             (0..self.size.x).flat_map(move |x| (0..self.size.y).map(move |y| (x, y)));
 
+        let index = { self.time_index.lock().unwrap().current };
+
         // Maps each coord to the view of the DiffCache
         // Displays everything using the given printer
         self.target
             .lock()
             .unwrap()
-            .view(self.get_screen_coords(), self.index)
+            .view(self.get_screen_coords(), index)
             .zip(local_coords)
             .for_each(|(v, coord)| printer.print(coord, &v.to_string()))
     }
