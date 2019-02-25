@@ -44,19 +44,29 @@ impl View for TimeView {
         let str_max = format!("{}", self.max);
         let pos_x_max = self.size.x - str_max.len() - 1;
 
-        let str_current = format!("{}", self.current);
-        let target_x_current = map(
-            self.current,
-            self.min,
-            self.max,
-            str_min.len() + 2,
-            pos_x_max - str_current.len() - 2,
-        );
-
+        // Shows the minimum value
         printer.print((1, 1), &format!("{}", self.min));
+
+        // Shows the maximum value
         printer.print((pos_x_max, 1), &str_max);
-        printer.print((target_x_current + 2, 1), &str_current);
-        let string_up_to_current = map(self.current, self.min, self.max, 1, self.size.x);
+
+        // Shows the current value if it is different from the max
+        if self.current != self.max && self.current != self.min {
+            let str_current = format!("{}", self.current);
+            let target_x_current = map(
+                self.current,
+                self.min,
+                self.max,
+                str_min.len() + 2,
+                pos_x_max - str_current.len() - 2,
+            );
+            printer.print((target_x_current + 2, 1), &str_current);
+        }
+
+        // Computes the loading bar index
+        let string_up_to_current = map(self.current, self.min, self.max, 1, self.size.x - 2);
+
+        // Shows the "loading bar" (how far we are on the time index)
         printer.with_color(
             ColorStyle::new(
                 ColorType::Color(Color::Rgb(255, 255, 255)),
@@ -65,18 +75,22 @@ impl View for TimeView {
             |p| {
                 p.print(
                     (1, 2),
-                    &(0..=string_up_to_current).map(|_| '|').collect::<String>(),
+                    &(1..=string_up_to_current).map(|_| '|').collect::<String>(),
                 );
             },
         );
+
+        // If we have yet to load something, shows the rest of the loading bar
         if string_up_to_current < self.size.x {
             printer.print(
                 (string_up_to_current, 2),
-                &(string_up_to_current..=self.size.x)
+                &(string_up_to_current..=self.size.x - 2)
                     .map(|_| '|')
                     .collect::<String>(),
             );
         }
+
+        // Prints the current time cursor
         printer.with_color(
             ColorStyle::new(
                 ColorType::Color(Color::Rgb(0, 0, 0)),
@@ -86,21 +100,6 @@ impl View for TimeView {
                 p.print((string_up_to_current, 2), "|");
             },
         );
-    }
-
-    /// Handles a key press on the TimeView
-    fn on_event(&mut self, event: Event) -> EventResult {
-        match event {
-            Event::Char(k) if k == 'n' => {
-                self.current += 1;
-                return EventResult::Consumed(None);
-            }
-            Event::Char(k) if k == 'b' => {
-                self.current -= 1;
-                return EventResult::Consumed(None);
-            }
-            _ => EventResult::Ignored,
-        }
     }
 
     /// Takes the focus for the TimeView
