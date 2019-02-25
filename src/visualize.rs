@@ -1,4 +1,5 @@
 use crate::diff_cache::DiffCache;
+use crate::time_index::TimeIndex;
 use itertools::{EitherOrBoth, Itertools};
 use std::hash::Hash;
 use std::string::ToString;
@@ -81,6 +82,7 @@ where
 
 pub fn populate_cache<T, C, V>(
     cache: Arc<Mutex<DiffCache<C, usize, V>>>,
+    time_index: Arc<Mutex<TimeIndex>>,
     mut iter: impl Iterator<Item = T>,
 ) where
     T: Visualize<C, V> + std::fmt::Debug,
@@ -98,6 +100,10 @@ pub fn populate_cache<T, C, V>(
             });
             // Locks the cache and populate it
             cache.lock().unwrap().append(delta);
+
+            // Locks the TimeIndex and add one to the max index
+            time_index.lock().unwrap().add_max();
+
             index += 1;
             a
         });
