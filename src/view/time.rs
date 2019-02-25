@@ -1,5 +1,4 @@
 use cursive::direction::Direction;
-use cursive::event::{Event, EventResult};
 use cursive::theme::{Color, ColorStyle, ColorType};
 use cursive::vec::Vec2;
 use cursive::view::View;
