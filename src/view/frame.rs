@@ -91,7 +91,12 @@ impl View for FrameView {
     fn on_event(&mut self, event: Event) -> EventResult {
         match event {
             // Basic keys (frame movement)
+            // Includes HJKL movement
             Event::Key(k) if k == Key::Left => {
+                self.move_center(-1, 0);
+                return EventResult::Consumed(None);
+            }
+            Event::Char(c) if c == 'h' => {
                 self.move_center(-1, 0);
                 return EventResult::Consumed(None);
             }
@@ -99,7 +104,15 @@ impl View for FrameView {
                 self.move_center(0, 1);
                 return EventResult::Consumed(None);
             }
+            Event::Char(c) if c == 'l' => {
+                self.move_center(0, 1);
+                return EventResult::Consumed(None);
+            }
             Event::Key(k) if k == Key::Up => {
+                self.move_center(0, -1);
+                return EventResult::Consumed(None);
+            }
+            Event::Char(c) if c == 'j' => {
                 self.move_center(0, -1);
                 return EventResult::Consumed(None);
             }
@@ -107,11 +120,18 @@ impl View for FrameView {
                 self.move_center(1, 0);
                 return EventResult::Consumed(None);
             }
-            Event::Key(k) if k == Key::F4 => {
+            Event::Char(c) if c == 'k' => {
+                self.move_center(1, 0);
+                return EventResult::Consumed(None);
+            }
+            // Time handling:
+            // * moves forward (n = next)
+            Event::Char(c) if c == 'n' => {
                 self.time_forward();
                 return EventResult::Consumed(None);
             }
-            Event::Key(k) if k == Key::F3 => {
+            // * backwards (b = back)
+            Event::Char(c) if c == 'b' => {
                 self.time_backward();
                 return EventResult::Consumed(None);
             }
