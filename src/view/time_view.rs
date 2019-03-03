@@ -6,9 +6,8 @@ use cursive::view::View;
 use cursive::Printer;
 use std::sync::{Arc, Mutex};
 
-/// Struct that shows the handling of the time
-/// in the current application
-/// TODO: FIXDOC
+/// View that shows the current time index.
+/// Stores a shared-reference over a TimeIndex in multiple threads
 pub struct TimeView {
     /// Keeps track of the time index
     time_index: Arc<Mutex<TimeIndex>>,
@@ -17,6 +16,7 @@ pub struct TimeView {
 }
 
 impl TimeView {
+    /// Creates a new instance of the TimeView
     pub fn new(time_index: Arc<Mutex<TimeIndex>>) -> Self {
         TimeView {
             time_index,

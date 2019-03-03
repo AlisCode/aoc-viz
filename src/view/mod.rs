@@ -1,2 +1,2 @@
 pub mod frame;
-pub mod time;
+pub mod time_view;
