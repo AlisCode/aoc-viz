@@ -4,14 +4,12 @@ End goal : Users can animate their data by implementing a trait and providing a 
 
 # Roadmap 
 
-[x] Implement a DiffTree 
-
+[x] Implement a DiffTree
 [x] Visualize trait 
-
+[ ] Using the Visualize trait in a multi-threaded manner
 [x] Cursive example application
-
-[ ] Cursive: Add time-handling bar
-
-[ ] proc_macro handling to make things generic
-
+[x] Cursive: Add time-handling bar
 [ ] Multiple examples 
+[ ] Use procedural macros to make things generic and implementable in cargo-aoc
+[ ] Integration into cargo-aoc
+[ ] Handle mouse-click
