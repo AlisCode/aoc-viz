@@ -1,10 +1,11 @@
 use crate::diff_cache::DiffCache;
 use crate::time_index::TimeIndex;
 use crate::view::frame::FrameView;
-use crate::view::time::TimeView;
+use crate::view::time_view::TimeView;
 use crate::visualize::{populate_cache, Visualize};
 use cursive::direction::Orientation;
-use cursive::views::LinearLayout;
+use cursive::view::{Boxable, Identifiable};
+use cursive::views::{Dialog, EditView, LinearLayout};
 use cursive::Cursive;
 use std::marker::PhantomData;
 use std::sync::{Arc, Mutex};
@@ -53,6 +54,27 @@ where
 
         // Sets the various option callbacks
         self.cursive.add_global_callback('q', |c| c.quit());
+        self.cursive.add_global_callback('g', |c| {
+            c.add_layer(
+                Dialog::new()
+                    .title("Goto")
+                    .padding((1, 1, 1, 0))
+                    .content(
+                        EditView::new()
+                            // Call `show_popup` when the user presses `Enter`
+                            .on_submit(|c, response| {
+                                eprintln!("ok");
+                            })
+                            // Give the `EditView` a name so we can refer to it later.
+                            .with_id("name")
+                            // Wrap this in a `BoxView` with a fixed width.
+                            // Do this _after_ `with_id` or the name will point to the
+                            // `BoxView` instead of `EditView`!
+                            .fixed_width(20),
+                    )
+                    .button("Go", |c| c.quit()),
+            )
+        });
 
         // Populates the cache by running the user's fn with a correct input
         CachePopulator::new(
