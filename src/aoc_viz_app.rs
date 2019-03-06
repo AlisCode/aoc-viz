@@ -4,7 +4,7 @@ use crate::view::frame::FrameView;
 use crate::view::time_view::TimeView;
 use crate::visualize::{populate_cache, Visualize};
 use cursive::direction::Orientation;
-use cursive::view::{Boxable, Identifiable};
+use cursive::view::{Boxable, Identifiable, Selector};
 use cursive::views::{Dialog, EditView, LinearLayout};
 use cursive::Cursive;
 use std::marker::PhantomData;
@@ -48,7 +48,7 @@ where
         // Populates the view
         let mut layout = LinearLayout::new(Orientation::Vertical);
         layout.add_child(FrameView::new(self.cache.clone(), self.time_index.clone()));
-        layout.add_child(TimeView::new(self.time_index.clone()));
+        layout.add_child(TimeView::new(self.time_index.clone()).with_id("time_view"));
 
         self.cursive.add_layer(layout);
 
@@ -57,22 +57,28 @@ where
         self.cursive.add_global_callback('g', |c| {
             c.add_layer(
                 Dialog::new()
-                    .title("Goto")
+                    .title("Go to time index")
                     .padding((1, 1, 1, 0))
                     .content(
                         EditView::new()
-                            // Call `show_popup` when the user presses `Enter`
-                            .on_submit(|c, response| {
-                                eprintln!("ok");
+                            // Changes the time_index when we hit `enter`
+                            .on_submit(|c: &mut Cursive, response: &str| {
+                                c.pop_layer();
+                                match c.call_on(
+                                    &Selector::Id("time_view"),
+                                    |time_view: &mut TimeView| {
+                                        time_view.set_current_time_frame(response)
+                                    },
+                                ) {
+                                    Some(rep) if rep == true => (),
+                                    Some(rep) if rep == false => (),
+                                    _ => unreachable!(),
+                                }
                             })
                             // Give the `EditView` a name so we can refer to it later.
-                            .with_id("name")
-                            // Wrap this in a `BoxView` with a fixed width.
-                            // Do this _after_ `with_id` or the name will point to the
-                            // `BoxView` instead of `EditView`!
+                            .with_id("time_frame")
                             .fixed_width(20),
-                    )
-                    .button("Go", |c| c.quit()),
+                    ),
             )
         });
 

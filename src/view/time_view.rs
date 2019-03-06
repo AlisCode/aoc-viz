@@ -23,6 +23,16 @@ impl TimeView {
             size: (0, 0).into(),
         }
     }
+
+    pub fn set_current_time_frame(&mut self, text: &str) -> bool {
+        match text.parse::<usize>() {
+            Ok(r) => {
+                let mut ti = self.time_index.lock().unwrap();
+                (*ti).set_current(r)
+            }
+            Err(_) => false,
+        }
+    }
 }
 
 /// Utility function, linearly maps the number x contained in the min range to
