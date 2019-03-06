@@ -33,7 +33,7 @@ impl TimeIndex {
     /// Moves the current time frame forward
     pub fn forward(&mut self) {
         self.current = match self.current.checked_add(1) {
-            Some(new) => new,
+            Some(new) if new <= self.max => new,
             _ => self.current,
         }
     }
@@ -41,7 +41,7 @@ impl TimeIndex {
     /// Moves the current time frame backward
     pub fn backward(&mut self) {
         self.current = match self.current.checked_sub(1) {
-            Some(new) => new,
+            Some(new) if new >= self.min => new,
             _ => self.current,
         }
     }
