@@ -104,7 +104,7 @@ impl View for FrameView {
                 self.move_center(0, 1);
                 return EventResult::Consumed(None);
             }
-            Event::Char(c) if c == 'l' => {
+            Event::Char(c) if c == 'j' => {
                 self.move_center(0, 1);
                 return EventResult::Consumed(None);
             }
@@ -112,7 +112,7 @@ impl View for FrameView {
                 self.move_center(0, -1);
                 return EventResult::Consumed(None);
             }
-            Event::Char(c) if c == 'j' => {
+            Event::Char(c) if c == 'k' => {
                 self.move_center(0, -1);
                 return EventResult::Consumed(None);
             }
@@ -120,7 +120,7 @@ impl View for FrameView {
                 self.move_center(1, 0);
                 return EventResult::Consumed(None);
             }
-            Event::Char(c) if c == 'k' => {
+            Event::Char(c) if c == 'l' => {
                 self.move_center(1, 0);
                 return EventResult::Consumed(None);
             }
