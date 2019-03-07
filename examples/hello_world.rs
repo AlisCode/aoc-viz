@@ -1,7 +1,7 @@
 use aoc_viz::aoc_viz_app::AocVizApp;
 
 fn test_aoc_viz(_input: String) -> impl Iterator<Item = u32> {
-    (0..1000).filter(|x| x % 2 == 0)
+    (0..10).filter(|x| x % 2 == 0)
 }
 
 fn main() {
