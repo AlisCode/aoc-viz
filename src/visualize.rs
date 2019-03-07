@@ -144,5 +144,11 @@ pub mod tests {
         let delta: Vec<(i32, i32)> = string.delta(&other_string);
         assert_eq!(delta.len(), 1);
         assert_eq!(delta[0], (0, 0));
+
+        // Tests multiple edit in the string
+        let string: String = "this is  a test".into();
+        let other_string: String = "this was a tast".into();
+        let delta: Vec<(i32, i32)> = string.delta(&other_string);
+        assert_eq!(delta.len(), 4);
     }
 }
