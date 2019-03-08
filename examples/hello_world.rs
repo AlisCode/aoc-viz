@@ -1,7 +1,15 @@
 use aoc_viz::aoc_viz_app::AocVizApp;
 
-fn test_aoc_viz(_input: String) -> impl Iterator<Item = u32> {
-    (0..10).filter(|x| x % 2 == 0)
+fn test_aoc_viz(_input: String) -> impl Iterator<Item = &'static str> {
+    vec![
+        "Hello",
+        "world!",
+        "This",
+        "is",
+        "my",
+        "cargo-aoc",
+        "app"
+    ].into_iter()
 }
 
 fn main() {
