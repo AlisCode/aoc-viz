@@ -8,6 +8,7 @@ pub struct Day1Viz {
 
 impl ToString for Day1Viz {
     fn to_string(&self) -> String {
+        if self.curr_val == 0 && self.sum == 0 { return format!(""); }
         format!("current: {}\nsum: {}", self.curr_val, self.sum)
     }
 }
