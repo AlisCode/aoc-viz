@@ -23,7 +23,7 @@ impl<F, T, V> AocVizApp<F, T, V>
 where
     F: Fn(String) -> T + Clone + Send + Sync + 'static,
     T: Iterator<Item = V>,
-    V: Visualize<(i32, i32), char> + std::fmt::Debug,
+    V: Visualize<(i32, i32), char> + std::fmt::Debug + std::default::Default,
 {
     /// Creates an instance of an AocVizApp
     pub fn new(fn_user: F) -> Self {
@@ -104,7 +104,7 @@ struct CachePopulator<F> {
 impl<F, T, V> CachePopulator<F>
 where
     T: Iterator<Item = V>,
-    V: Visualize<(i32, i32), char> + std::fmt::Debug,
+    V: Visualize<(i32, i32), char> + std::fmt::Debug + std::default::Default,
     F: Fn(String) -> T + Send + Sync + 'static,
 {
     pub fn new(

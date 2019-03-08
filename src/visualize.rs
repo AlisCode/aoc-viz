@@ -83,31 +83,31 @@ where
 pub fn populate_cache<T, C, V>(
     cache: Arc<Mutex<DiffCache<C, usize, V>>>,
     time_index: Arc<Mutex<TimeIndex>>,
-    mut iter: impl Iterator<Item = T>,
+    iter: impl Iterator<Item = T>,
 ) where
-    T: Visualize<C, V> + std::fmt::Debug,
+    T: Visualize<C, V> + std::fmt::Debug + std::default::Default,
     V: std::fmt::Debug,
     C: Hash + Eq + std::fmt::Debug,
 {
-    let mut index: usize = 0;
-    if let Some(first) = iter.next() {
-        iter.fold(first, |acc, a| {
-            let delta = a.delta(&acc).into_iter().filter_map(|c| {
-                if let Some(v) = a.get(&c) {
-                    return Some((c, index, v));
-                }
-                None
-            });
-            // Locks the cache and populate it
-            cache.lock().unwrap().append(delta);
-
-            // Locks the TimeIndex and add one to the max index
-            time_index.lock().unwrap().add_max();
-
-            index += 1;
-            a
+    let mut index: usize = 1;
+    let first = T::default();
+    iter.fold(first, |acc, a| {
+        let delta = a.delta(&acc).into_iter().filter_map(|c| {
+            if let Some(v) = a.get(&c) {
+                return Some((c, index, v));
+            }
+            Some((c, index, a.default_val()))
         });
-    }
+
+        // Locks the cache and populate it
+        cache.lock().unwrap().append(delta);
+
+        // Locks the TimeIndex and add one to the max index
+        time_index.lock().unwrap().add_max();
+
+        index += 1;
+        a
+    });
 }
 
 #[cfg(test)]
@@ -149,6 +149,12 @@ pub mod tests {
         let string: String = "this is  a test".into();
         let other_string: String = "this was a tast".into();
         let delta: Vec<(i32, i32)> = string.delta(&other_string);
+        assert_eq!(delta.len(), 4);
+
+        // Test case for display_hello
+        let string: String = "Hello".into();
+        let other_string: String = "World".into();
+        let delta: Vec<(i32, i32)> = other_string.delta(&string);
         assert_eq!(delta.len(), 4);
     }
 }
